@@ -1,0 +1,43 @@
+name: CMX-500 QA Pipeline
+
+# Trigger the workflow on push or pull request to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Create directories
+      run: |
+        mkdir -p c_storefile
+        mkdir -p reports
+
+    - name: Compile C executables
+      # Path to C files
+      run: |
+        gcc /home/hubert/python_project/c_storefile//v1.c -o c_storefile/v1
+        gcc /home/hubert/python_project/c_storefile//v2.c -o c_storefile/v2
+        gcc /home/hubert/python_project/c_storefile//v3.c -o c_storefile/v3
+
+    - name: Run QA Test Suite
+      run: python3 main.py
+
+    - name: Upload Test Report Artifact
+      if: always() # Ensures report is uploaded even if tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: qa-test-reports
+        path: reports/*.md
