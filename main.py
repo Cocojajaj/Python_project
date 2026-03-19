@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 import subprocess
 import itertools
+import os
+import datetime 
+
+REPORT = []
 
 # --- Command Codes ---
 CMD_ADD = 0xA1
@@ -28,7 +32,13 @@ COLOR_NAMES = {
     COLOR_WHITE: "WHITE",
 }
 
-C_DIR = "/home/hubert/python_project/c_storefile"
+C_DIR = os.path.join(os.path.dirname(__file__), "c_storefile")
+
+
+#Create a report
+def log(line):
+    print(line)        
+    REPORT.append(line)  
 
 
 import select
@@ -82,7 +92,7 @@ def test_all_pairs(executable):
         (COLOR_GREEN, COLOR_BLUE): COLOR_CYAN,
     }
 
-    print(f"\nTesting {executable}")
+    log(f"\nTesting {executable}")
 
     for a, b in itertools.product(primaries, repeat=2):
 
@@ -93,14 +103,14 @@ def test_all_pairs(executable):
 
         status = "PASS" if result == expected_val else "FAIL"
 
-        print(f"{COLOR_NAMES[a]} + {COLOR_NAMES[b]} -> {name} (expected {COLOR_NAMES[expected_val]}) [{status}]")
+        log(f"{COLOR_NAMES[a]} + {COLOR_NAMES[b]} -> {name} (expected {COLOR_NAMES[expected_val]}) [{status}]")
 
 
 def test_white_permutation(executable):
 
     perms = itertools.permutations([COLOR_GREEN, COLOR_RED, COLOR_BLUE])
 
-    print("\nWhite permutation tests")
+    log("\nWhite permutation tests")
 
     for p in perms:
 
@@ -110,12 +120,12 @@ def test_white_permutation(executable):
 
         status = "PASS" if result == COLOR_WHITE else "FAIL"
 
-        print(f"{[COLOR_NAMES[x] for x in p]} -> {name} [{status}]")
+        log(f"{[COLOR_NAMES[x] for x in p]} -> {name} [{status}]")
 
 
 def stress_test_v3(executable):
 
-    print("\nStress test (1000 mixes)")
+    log("\nStress test (1000 mixes)")
 
     try:
         proc = subprocess.Popen(
@@ -133,17 +143,18 @@ def stress_test_v3(executable):
 
             proc.stdout.read(1)
 
-        print("Stress test finished")
+        log("Stress test finished")
 
         proc.kill()
 
     except Exception as e:
-        print("Stress test error:", e)
+        log(f"Stress test error: {e}")
+
 
 
 def main():
 
-    print("=== CMX-500 Color Mixer QA Suite ===")
+    log("=== CMX-500 Color Mixer QA Suite ===")
 
     executables = [
         f"{C_DIR}/v1",
@@ -159,8 +170,23 @@ def main():
         if exe.endswith("v3"):
             stress_test_v3(exe)
 
-    print("\n=== QA Tests Complete ===")
 
+    log("\n=== QA Tests Complete ===")
+
+    import os
+
+    report_dir = os.path.join(os.path.dirname(__file__), "reports")
+    os.makedirs(report_dir, exist_ok=True)
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    report_path = os.path.join(report_dir, f"report_{timestamp}.md")
+
+    with open(report_path, "w") as f:
+        f.write(f"# CMX-500 Test Report - {timestamp}\n\n")
+        for line in REPORT:
+            f.write(line + "\n")
+    
+    print(f"\nReport saved to: {report_path}")
 
 if __name__ == "__main__":
     main()
