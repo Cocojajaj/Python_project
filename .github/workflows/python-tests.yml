@@ -28,9 +28,9 @@ jobs:
     - name: Compile C executables
       # Path to C files
       run: |
-        gcc /home/hubert/python_project/c_storefile//v1.c -o c_storefile/v1
-        gcc /home/hubert/python_project/c_storefile//v2.c -o c_storefile/v2
-        gcc /home/hubert/python_project/c_storefile//v3.c -o c_storefile/v3
+        gcc c_storefile//v1.c -o c_storefile/v1
+        gcc c_storefile//v2.c -o c_storefile/v2
+        gcc c_storefile//v3.c -o c_storefile/v3
 
     - name: Run QA Test Suite
       run: python3 main.py
